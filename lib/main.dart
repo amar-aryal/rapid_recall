@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rapid_recall/UI/characters_grid_screen.dart';
 import 'package:rapid_recall/blocs/theme_bloc/theme_bloc.dart';
 import 'package:rapid_recall/blocs/theme_bloc/theme_state.dart';
-
-import 'data/repository/data_repository.dart';
+import 'package:rapid_recall/data/repository/data_repository.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,39 +17,43 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    DataRepository().getCharactersData(1);
-    return BlocProvider(
-      create: (context) => ThemeBloc(),
-      child: BlocBuilder<ThemeBloc, ThemeState>(
-        builder: (context_, state) {
-          final ThemeBloc themeBloc = BlocProvider.of<ThemeBloc>(context_);
+    return RepositoryProvider(
+      // try to streamline code
+      create: (context) => DataRepository(),
+      child: BlocProvider(
+        create: (context) => ThemeBloc(),
+        child: BlocBuilder<ThemeBloc, ThemeState>(
+          builder: (context_, state) {
+            final ThemeBloc themeBloc = BlocProvider.of<ThemeBloc>(context_);
 
-          return MaterialApp(
-            title: 'Flutter Demo',
-            theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: Colors.deepPurple,
-                brightness: state.theme,
-              ),
-              useMaterial3: true,
-            ),
-            home: Scaffold(
-              appBar: AppBar(),
-              body: Center(
-                child: MaterialButton(
-                  child: const Text('CHANGE THEME'),
-                  onPressed: () {
-                    themeBloc.add(
-                      state.theme == Brightness.light
-                          ? ThemeEvent.dark
-                          : ThemeEvent.bright,
-                    );
-                  },
+            return MaterialApp(
+              title: 'Flutter Demo',
+              theme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: Colors.deepPurple,
+                  brightness: state.theme,
                 ),
+                useMaterial3: true,
               ),
-            ),
-          );
-        },
+              home: const CharacterGridScreen(),
+              // home: Scaffold(
+              //   appBar: AppBar(),
+              //   body: Center(
+              //     child: MaterialButton(
+              //       child: const Text('CHANGE THEME'),
+              //       onPressed: () {
+              //         themeBloc.add(
+              //           state.theme == Brightness.light
+              //               ? ThemeEvent.dark
+              //               : ThemeEvent.bright,
+              //         );
+              //       },
+              //     ),
+              //   ),
+              // ),
+            );
+          },
+        ),
       ),
     );
   }

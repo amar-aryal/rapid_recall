@@ -8,9 +8,9 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
 
   CharactersBloc(this._dataRepository) : super(CharactersLoadingState()) {
     on<CharactersEvent>((event, emit) async {
-      try {
-        emit(CharactersLoadingState());
+      emit(CharactersLoadingState());
 
+      try {
         final characters = await _dataRepository.getCharactersData(1);
 
         emit(CharactersLoadedState(characters));
