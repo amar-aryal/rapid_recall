@@ -5,8 +5,11 @@ import 'package:flutter/material.dart';
 abstract class CharactersEvent extends Equatable {}
 
 class GetCharactersEvent extends CharactersEvent {
+  final int hskNo;
+
+  GetCharactersEvent({this.hskNo = 1});
   @override
-  List<Object> get props => [];
+  List<Object> get props => [hskNo];
 }
 
 class FilterCharactersEvent extends CharactersEvent {

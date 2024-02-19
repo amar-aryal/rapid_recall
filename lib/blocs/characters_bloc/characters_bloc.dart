@@ -14,7 +14,7 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
       if (event is GetCharactersEvent) {
         await getAllCharacters(event, emit);
       } else if (event is FilterCharactersEvent) {
-        filterCharacters(event, emit, event.filters);
+        filterCharacters(event, emit);
       }
     });
   }
@@ -24,7 +24,8 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
     emit(CharactersLoadingState());
 
     try {
-      _characters = await _dataRepository.getCharactersData(1);
+      final hskNo = (event as GetCharactersEvent).hskNo;
+      _characters = await _dataRepository.getCharactersData(hskNo);
 
       emit(CharactersLoadedState(_characters));
     } catch (e) {
@@ -32,9 +33,10 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
     }
   }
 
-  filterCharacters(CharactersEvent event, Emitter<CharactersState> emit,
-      (String, int) filters) {
+  filterCharacters(CharactersEvent event, Emitter<CharactersState> emit) {
     try {
+      final filters = (event as FilterCharactersEvent).filters;
+
       final filteredCharacters =
           _characters.where((element) => element.pinyin.startsWith(filters.$1));
 
