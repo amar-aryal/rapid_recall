@@ -3,6 +3,7 @@ import 'package:rapid_recall/blocs/characters_bloc/characters_event.dart';
 import 'package:rapid_recall/blocs/characters_bloc/characters_state.dart';
 import 'package:rapid_recall/data/models/character.dart';
 import 'package:rapid_recall/data/repository/data_repository.dart';
+import 'package:rapid_recall/utils/alphabet_tones.dart';
 
 class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
   final DataRepository _dataRepository;
@@ -37,8 +38,19 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
     try {
       final filters = (event as FilterCharactersEvent).filters;
 
-      final filteredCharacters =
-          _characters.where((element) => element.pinyin.startsWith(filters.$1));
+      List<Character> filteredCharacters = [];
+
+      if (filters.$1 case ('a' || 'e' || 'i' || 'o' || 'u')) {
+        RegExp pattern = vowelsRegexGenerator(filters.$1);
+
+        filteredCharacters = _characters
+            .where((element) => element.pinyin.startsWith(pattern))
+            .toList();
+      } else {
+        filteredCharacters = _characters
+            .where((element) => element.pinyin.startsWith(filters.$1))
+            .toList();
+      }
 
       _characters = [...filteredCharacters];
 
