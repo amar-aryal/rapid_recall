@@ -52,9 +52,7 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
             .toList();
       }
 
-      _characters = [...filteredCharacters];
-
-      emit(CharactersLoadedState(_characters));
+      emit(CharactersLoadedState(filteredCharacters));
     } catch (e) {
       emit(CharactersErrorState(e.toString()));
     }

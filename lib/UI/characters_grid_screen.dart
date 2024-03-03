@@ -77,16 +77,6 @@ class _CharacterGridScreenState extends State<CharacterGridScreen> {
                           },
                         ),
                         MaterialButton(
-                          child: const Text('TEST FILTER'),
-                          onPressed: () {
-                            charactersBloc.add(
-                              FilterCharactersEvent(
-                                ('a', 1),
-                              ),
-                            );
-                          },
-                        ),
-                        MaterialButton(
                           child: const Text('RESET'),
                           onPressed: () {
                             charactersBloc.add(GetCharactersEvent());
