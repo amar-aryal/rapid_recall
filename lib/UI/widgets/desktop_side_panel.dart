@@ -20,13 +20,16 @@ class DesktopSidePanel extends StatelessWidget {
           children: [1, 2, 3, 4, 5, 6]
               .map(
                 (no) => MaterialButton(
+                  minWidth: context.width * 0.15,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 25,
                   ),
-                  color: currentSelectedHsk == no ? Colors.blueGrey : null,
+                  color: currentSelectedHsk == no ? Colors.blue : null,
                   child: Text(
                     'HSK $no',
-                    style: Theme.of(context).textTheme.headlineMedium,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          color: currentSelectedHsk == no ? Colors.white : null,
+                        ),
                   ),
                   onPressed: () {
                     onClick(no);
