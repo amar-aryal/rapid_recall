@@ -5,12 +5,19 @@ import 'package:rapid_recall/blocs/theme_bloc/theme_bloc.dart';
 import 'package:rapid_recall/blocs/theme_bloc/theme_state.dart';
 import 'package:rapid_recall/data/repository/data_repository.dart';
 
+import 'blocs/theme_bloc/theme_event.dart';
+
 void main() {
   runApp(const MyApp());
 }
 
 //TODO: find a way to programtically write traditional character in each json object
 // Alternatively: find other json files with traditional characters in github
+
+//TODO: theme colors choose for light and dark theme
+// TODO: routing setup, autoroute or go router
+// TODO: parameter for hsk nos - DONE
+//TODO: Theme: after initial data fetch done, write tests
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -35,22 +42,13 @@ class MyApp extends StatelessWidget {
                 ),
                 useMaterial3: true,
               ),
-              home: const CharacterGridScreen(),
-              // home: Scaffold(
-              //   appBar: AppBar(),
-              //   body: Center(
-              //     child: MaterialButton(
-              //       child: const Text('CHANGE THEME'),
-              //       onPressed: () {
-              //         themeBloc.add(
-              //           state.theme == Brightness.light
-              //               ? ThemeEvent.dark
-              //               : ThemeEvent.bright,
-              //         );
-              //       },
-              //     ),
-              //   ),
-              // ),
+              home: CharacterGridScreen(onThemeChange: () {
+                themeBloc.add(
+                  state.theme == Brightness.light
+                      ? ThemeEvent.dark
+                      : ThemeEvent.bright,
+                );
+              }),
             );
           },
         ),

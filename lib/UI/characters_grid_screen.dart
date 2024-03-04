@@ -10,18 +10,20 @@ import 'package:rapid_recall/blocs/characters_bloc/characters_state.dart';
 import 'package:rapid_recall/data/repository/data_repository.dart';
 
 class CharacterGridScreen extends StatefulWidget {
-  const CharacterGridScreen({super.key});
+  final VoidCallback onThemeChange;
+  const CharacterGridScreen({super.key, required this.onThemeChange});
 
   @override
   State<CharacterGridScreen> createState() => _CharacterGridScreenState();
 }
 
-class _CharacterGridScreenState extends State<CharacterGridScreen> {
+class _CharacterGridScreenState extends State<CharacterGridScreen>
+    with TickerProviderStateMixin {
   final alphabetsList =
       List.generate(26, (index) => String.fromCharCode(index + 65));
 
   late String selectedAlphabet;
-  late int hskNo;
+  late ValueNotifier<int> hskNo;
 
   initializeDropdown() {
     selectedAlphabet = alphabetsList[0];
@@ -32,7 +34,13 @@ class _CharacterGridScreenState extends State<CharacterGridScreen> {
     super.initState();
 
     initializeDropdown();
-    hskNo = 1;
+    hskNo = ValueNotifier(1);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    hskNo.dispose();
   }
 
   @override
@@ -42,40 +50,66 @@ class _CharacterGridScreenState extends State<CharacterGridScreen> {
           CharactersBloc(RepositoryProvider.of<DataRepository>(context))
             ..add(GetCharactersEvent()),
       child: Scaffold(
-        appBar: AppBar(),
-        // drawer: const Drawer(),
+        appBar: AppBar(
+          title: IconButton(
+            icon: const Icon(Icons.light),
+            onPressed: widget.onThemeChange,
+          ),
+          bottom: Platform.isAndroid || Platform.isIOS
+              ? TabBar(
+                  controller: TabController(length: 6, vsync: this),
+                  tabs: const [
+                    Text('HSK 1'),
+                    Text('HSK 2'),
+                    Text('HSK 3'),
+                    Text('HSK 4'),
+                    Text('HSK 5'),
+                    Text('HSK 6'),
+                  ],
+                )
+              : null,
+        ),
         // In desktop, side nav, in mobile tab bar view
-        body: BlocBuilder<CharactersBloc, CharactersState>(
-          builder: (context, state) {
-            final charactersBloc = BlocProvider.of<CharactersBloc>(context);
+        body: Row(
+          children: [
+            if (!Platform.isIOS && !Platform.isAndroid)
+              ValueListenableBuilder(
+                valueListenable: hskNo,
+                builder: (context, value, _) {
+                  final charactersBloc =
+                      BlocProvider.of<CharactersBloc>(context);
 
-            if (state is CharactersLoadingState) {
-              return const Center(
-                child: CircularProgressIndicator.adaptive(),
-              );
-            } else if (state is CharactersErrorState) {
-              return Center(
-                child: Text(state.error),
-              );
-            } else if (state is CharactersLoadedState) {
-              final hskCharacters = state.characters;
+                  return DesktopSidePanel(
+                    currentSelectedHsk: hskNo.value,
+                    onClick: (no) {
+                      charactersBloc.add(GetCharactersEvent(hskNo: no));
 
-              return Row(
-                children: [
-                  if (!Platform.isIOS && !Platform.isAndroid)
-                    DesktopSidePanel(
-                      charactersBloc: charactersBloc,
-                      onClick: (no) {
-                        charactersBloc.add(GetCharactersEvent(hskNo: no));
+                      hskNo.value = no;
 
-                        hskNo = no;
+                      initializeDropdown();
+                    },
+                  );
+                },
+              ),
+            Flexible(
+              flex: 4,
+              child: BlocBuilder<CharactersBloc, CharactersState>(
+                builder: (context, state) {
+                  final charactersBloc =
+                      BlocProvider.of<CharactersBloc>(context);
 
-                        initializeDropdown();
-                      },
-                    ),
-                  Flexible(
-                    flex: 4,
-                    child: CustomScrollView(
+                  if (state is CharactersLoadingState) {
+                    return const Center(
+                      child: CircularProgressIndicator.adaptive(),
+                    );
+                  } else if (state is CharactersErrorState) {
+                    return Center(
+                      child: Text(state.error),
+                    );
+                  } else if (state is CharactersLoadedState) {
+                    final hskCharacters = state.characters;
+
+                    return CustomScrollView(
                       slivers: [
                         SliverToBoxAdapter(
                           child: Row(
@@ -97,7 +131,7 @@ class _CharacterGridScreenState extends State<CharacterGridScreen> {
 
                                     charactersBloc.add(
                                       FilterCharactersEvent(
-                                        (value.toLowerCase(), hskNo),
+                                        (value.toLowerCase(), hskNo.value),
                                       ),
                                     );
                                   }
@@ -107,8 +141,8 @@ class _CharacterGridScreenState extends State<CharacterGridScreen> {
                                 child: const Text('RESET'),
                                 onPressed: () {
                                   //
-                                  charactersBloc
-                                      .add(GetCharactersEvent(hskNo: hskNo));
+                                  charactersBloc.add(
+                                      GetCharactersEvent(hskNo: hskNo.value));
 
                                   initializeDropdown();
                                 },
@@ -132,14 +166,14 @@ class _CharacterGridScreenState extends State<CharacterGridScreen> {
                           ),
                         )
                       ],
-                    ),
-                  ),
-                ],
-              );
-            } else {
-              return const SizedBox();
-            }
-          },
+                    );
+                  } else {
+                    return const SizedBox();
+                  }
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

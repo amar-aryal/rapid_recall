@@ -48,6 +48,7 @@ class GridCard extends StatelessWidget {
           arrowHeight: 15,
           arrowWidth: 30,
           radius: 15,
+          backgroundColor: Theme.of(context).cardColor,
         );
       },
       child: SizedBox.square(

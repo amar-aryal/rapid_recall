@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:rapid_recall/blocs/characters_bloc/characters_bloc.dart';
 import 'package:rapid_recall/utils/context_extension.dart';
 
 class DesktopSidePanel extends StatelessWidget {
-  final CharactersBloc charactersBloc;
   final Function(int) onClick;
+  final int currentSelectedHsk;
+
   const DesktopSidePanel({
     super.key,
-    required this.charactersBloc,
     required this.onClick,
+    required this.currentSelectedHsk,
   });
 
   @override
@@ -23,6 +23,7 @@ class DesktopSidePanel extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                     horizontal: 25,
                   ),
+                  color: currentSelectedHsk == no ? Colors.blueGrey : null,
                   child: Text(
                     'HSK $no',
                     style: Theme.of(context).textTheme.headlineMedium,
