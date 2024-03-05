@@ -52,11 +52,12 @@ class GridCard extends StatelessWidget {
         );
       },
       child: SizedBox.square(
-        // dimension: MediaQuery.of(context).size.width * 0.05,
         child: Card(
-          child: Text(
-            character.hanzi,
-            style: Theme.of(context).textTheme.displayMedium,
+          child: Center(
+            child: Text(
+              character.hanzi,
+              style: Theme.of(context).textTheme.displayMedium,
+            ),
           ),
         ),
       ),
