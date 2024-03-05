@@ -24,9 +24,20 @@ class _CharacterGridScreenState extends State<CharacterGridScreen>
 
   late String selectedAlphabet;
   late ValueNotifier<int> hskNo;
+  late TabController tabController;
 
   initializeDropdown() {
     selectedAlphabet = alphabetsList[0];
+  }
+
+  onHskChanged(int no, BuildContext ctx) {
+    final charactersBloc = BlocProvider.of<CharactersBloc>(ctx);
+
+    charactersBloc.add(GetCharactersEvent(hskNo: no));
+
+    hskNo.value = no;
+
+    initializeDropdown();
   }
 
   @override
@@ -35,12 +46,14 @@ class _CharacterGridScreenState extends State<CharacterGridScreen>
 
     initializeDropdown();
     hskNo = ValueNotifier(1);
+    tabController = TabController(length: 6, vsync: this);
   }
 
   @override
   void dispose() {
     super.dispose();
     hskNo.dispose();
+    tabController.dispose();
   }
 
   @override
@@ -55,19 +68,24 @@ class _CharacterGridScreenState extends State<CharacterGridScreen>
             icon: const Icon(Icons.light),
             onPressed: widget.onThemeChange,
           ),
-          bottom: Platform.isAndroid || Platform.isIOS
-              ? TabBar(
-                  controller: TabController(length: 6, vsync: this),
-                  tabs: const [
-                    Text('HSK 1'),
-                    Text('HSK 2'),
-                    Text('HSK 3'),
-                    Text('HSK 4'),
-                    Text('HSK 5'),
-                    Text('HSK 6'),
-                  ],
-                )
-              : null,
+          // bottom: Platform.isAndroid || Platform.isIOS
+          //     ? PreferredSize(
+          //         preferredSize: const Size.fromHeight(40),
+          //         child: Builder(builder: (ctx) {
+          //           return TabBar(
+          //             controller: tabController,
+          //             isScrollable: true,
+          //             tabs: [1, 2, 3, 4, 5, 6]
+          //                 .map((no) => Text('HSK $no'))
+          //                 .toList(),
+          //             onTap: (value) {
+          //               // +1 because value = index
+          //               onHskChanged(value + 1, ctx);
+          //             },
+          //           );
+          //         }),
+          //       )
+          //     : null,
         ),
         // In desktop, side nav, in mobile tab bar view
         body: Row(
@@ -76,17 +94,11 @@ class _CharacterGridScreenState extends State<CharacterGridScreen>
               ValueListenableBuilder(
                 valueListenable: hskNo,
                 builder: (context, value, _) {
-                  final charactersBloc =
-                      BlocProvider.of<CharactersBloc>(context);
-
                   return DesktopSidePanel(
                     currentSelectedHsk: hskNo.value,
                     onClick: (no) {
-                      charactersBloc.add(GetCharactersEvent(hskNo: no));
-
-                      hskNo.value = no;
-
-                      initializeDropdown();
+                      //
+                      onHskChanged(no, context);
                     },
                   );
                 },
@@ -111,43 +123,49 @@ class _CharacterGridScreenState extends State<CharacterGridScreen>
 
                     return CustomScrollView(
                       slivers: [
-                        SliverToBoxAdapter(
-                          child: Row(
-                            children: [
-                              DropdownButton(
-                                value: selectedAlphabet,
-                                items: alphabetsList
-                                    .map(
-                                      (e) => DropdownMenuItem<String>(
-                                        value: e,
-                                        child: Text(e),
-                                      ),
-                                    )
-                                    .toList(),
-                                onChanged: (String? value) {
-                                  if (value != null) {
-                                    //
-                                    selectedAlphabet = value;
+                        SliverPersistentHeader(
+                          pinned: true,
+                          delegate: StickyHeader(
+                            child: Container(
+                              color: Theme.of(context).scaffoldBackgroundColor,
+                              child: Row(
+                                children: [
+                                  DropdownButton(
+                                    value: selectedAlphabet,
+                                    items: alphabetsList
+                                        .map(
+                                          (e) => DropdownMenuItem<String>(
+                                            value: e,
+                                            child: Text(e),
+                                          ),
+                                        )
+                                        .toList(),
+                                    onChanged: (String? value) {
+                                      if (value != null) {
+                                        //
+                                        selectedAlphabet = value;
 
-                                    charactersBloc.add(
-                                      FilterCharactersEvent(
-                                        (value.toLowerCase(), hskNo.value),
-                                      ),
-                                    );
-                                  }
-                                },
-                              ),
-                              MaterialButton(
-                                child: const Text('RESET'),
-                                onPressed: () {
-                                  //
-                                  charactersBloc.add(
-                                      GetCharactersEvent(hskNo: hskNo.value));
+                                        charactersBloc.add(
+                                          FilterCharactersEvent(
+                                            (value.toLowerCase(), hskNo.value),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                  MaterialButton(
+                                    child: const Text('RESET'),
+                                    onPressed: () {
+                                      //
+                                      charactersBloc.add(GetCharactersEvent(
+                                          hskNo: hskNo.value));
 
-                                  initializeDropdown();
-                                },
+                                      initializeDropdown();
+                                    },
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                         SliverGrid(
@@ -178,4 +196,24 @@ class _CharacterGridScreenState extends State<CharacterGridScreen>
       ),
     );
   }
+}
+
+class StickyHeader extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  const StickyHeader({required this.child});
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return child;
+  }
+
+  @override
+  double get maxExtent => 40;
+
+  @override
+  double get minExtent => 40;
+
+  @override
+  bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) => true;
 }
