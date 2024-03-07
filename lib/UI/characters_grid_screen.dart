@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rapid_recall/UI/widgets/desktop_side_panel.dart';
 import 'package:rapid_recall/UI/widgets/grid_card.dart';
+import 'package:rapid_recall/UI/widgets/tab_nav_view.dart';
 import 'package:rapid_recall/blocs/characters_bloc/characters_bloc.dart';
 import 'package:rapid_recall/blocs/characters_bloc/characters_event.dart';
 import 'package:rapid_recall/blocs/characters_bloc/characters_state.dart';
@@ -68,24 +69,14 @@ class _CharacterGridScreenState extends State<CharacterGridScreen>
             icon: const Icon(Icons.light),
             onPressed: widget.onThemeChange,
           ),
-          // bottom: Platform.isAndroid || Platform.isIOS
-          //     ? PreferredSize(
-          //         preferredSize: const Size.fromHeight(40),
-          //         child: Builder(builder: (ctx) {
-          //           return TabBar(
-          //             controller: tabController,
-          //             isScrollable: true,
-          //             tabs: [1, 2, 3, 4, 5, 6]
-          //                 .map((no) => Text('HSK $no'))
-          //                 .toList(),
-          //             onTap: (value) {
-          //               // +1 because value = index
-          //               onHskChanged(value + 1, ctx);
-          //             },
-          //           );
-          //         }),
-          //       )
-          //     : null,
+          // TODO: this alternative
+          bottom: Platform.isAndroid || Platform.isIOS
+              ? TabNavView(
+                  controller: tabController,
+                  onChanged: (value, context) {
+                    onHskChanged(value + 1, context);
+                  })
+              : null,
         ),
         // In desktop, side nav, in mobile tab bar view
         body: Row(
@@ -105,90 +96,103 @@ class _CharacterGridScreenState extends State<CharacterGridScreen>
               ),
             Flexible(
               flex: 4,
-              child: BlocBuilder<CharactersBloc, CharactersState>(
-                builder: (context, state) {
-                  final charactersBloc =
-                      BlocProvider.of<CharactersBloc>(context);
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: BlocBuilder<CharactersBloc, CharactersState>(
+                  builder: (context, state) {
+                    final charactersBloc =
+                        BlocProvider.of<CharactersBloc>(context);
 
-                  if (state is CharactersLoadingState) {
-                    return const Center(
-                      child: CircularProgressIndicator.adaptive(),
-                    );
-                  } else if (state is CharactersErrorState) {
-                    return Center(
-                      child: Text(state.error),
-                    );
-                  } else if (state is CharactersLoadedState) {
-                    final hskCharacters = state.characters;
+                    if (state is CharactersLoadingState) {
+                      return const Center(
+                        child: CircularProgressIndicator.adaptive(),
+                      );
+                    } else if (state is CharactersErrorState) {
+                      return Center(
+                        child: Text(state.error),
+                      );
+                    } else if (state is CharactersLoadedState) {
+                      final hskCharacters = state.characters;
 
-                    return CustomScrollView(
-                      slivers: [
-                        SliverPersistentHeader(
-                          pinned: true,
-                          delegate: StickyHeader(
-                            child: Container(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              child: Row(
-                                children: [
-                                  DropdownButton(
-                                    value: selectedAlphabet,
-                                    items: alphabetsList
-                                        .map(
-                                          (e) => DropdownMenuItem<String>(
-                                            value: e,
-                                            child: Text(e),
-                                          ),
-                                        )
-                                        .toList(),
-                                    onChanged: (String? value) {
-                                      if (value != null) {
+                      return CustomScrollView(
+                        slivers: [
+                          SliverPersistentHeader(
+                            pinned: true,
+                            delegate: StickyHeader(
+                              child: Container(
+                                color:
+                                    Theme.of(context).scaffoldBackgroundColor,
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    SizedBox(
+                                      width: 100,
+                                      child: DropdownButtonFormField(
+                                        value: selectedAlphabet,
+                                        items: alphabetsList
+                                            .map(
+                                              (e) => DropdownMenuItem<String>(
+                                                value: e,
+                                                child: Text(e),
+                                              ),
+                                            )
+                                            .toList(),
+                                        onChanged: (String? value) {
+                                          if (value != null) {
+                                            //
+                                            selectedAlphabet = value;
+
+                                            charactersBloc.add(
+                                              FilterCharactersEvent(
+                                                (
+                                                  value.toLowerCase(),
+                                                  hskNo.value
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                    MaterialButton(
+                                      child: const Text('RESET'),
+                                      onPressed: () {
                                         //
-                                        selectedAlphabet = value;
+                                        charactersBloc.add(GetCharactersEvent(
+                                            hskNo: hskNo.value));
 
-                                        charactersBloc.add(
-                                          FilterCharactersEvent(
-                                            (value.toLowerCase(), hskNo.value),
-                                          ),
-                                        );
-                                      }
-                                    },
-                                  ),
-                                  MaterialButton(
-                                    child: const Text('RESET'),
-                                    onPressed: () {
-                                      //
-                                      charactersBloc.add(GetCharactersEvent(
-                                          hskNo: hskNo.value));
-
-                                      initializeDropdown();
-                                    },
-                                  ),
-                                ],
+                                        initializeDropdown();
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        SliverGrid(
-                          gridDelegate:
-                              const SliverGridDelegateWithMaxCrossAxisExtent(
-                            maxCrossAxisExtent: 200.0,
-                            mainAxisSpacing: 10.0,
-                            crossAxisSpacing: 10.0,
-                            childAspectRatio: 2.0,
-                          ),
-                          delegate: SliverChildBuilderDelegate(
-                            (BuildContext context, int index) {
-                              return GridCard(character: hskCharacters[index]);
-                            },
-                            childCount: hskCharacters.length,
-                          ),
-                        )
-                      ],
-                    );
-                  } else {
-                    return const SizedBox();
-                  }
-                },
+                          SliverGrid(
+                            gridDelegate:
+                                const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 200.0,
+                              mainAxisSpacing: 10.0,
+                              crossAxisSpacing: 10.0,
+                              childAspectRatio: 2.0,
+                            ),
+                            delegate: SliverChildBuilderDelegate(
+                              (BuildContext context, int index) {
+                                return GridCard(
+                                    character: hskCharacters[index]);
+                              },
+                              childCount: hskCharacters.length,
+                            ),
+                          )
+                        ],
+                      );
+                    } else {
+                      return const SizedBox();
+                    }
+                  },
+                ),
               ),
             ),
           ],

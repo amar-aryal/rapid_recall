@@ -14,7 +14,7 @@ void main() {
 //TODO: find a way to programtically write traditional character in each json object
 // Alternatively: find other json files with traditional characters in github
 
-//TODO: theme colors choose for light and dark theme
+//TODO: theme colors choose for light and dark theme - Theme Extensions
 // TODO: routing setup, autoroute or go router
 // TODO: parameter for hsk nos - DONE
 //TODO: Theme: after initial data fetch done, write tests
