@@ -9,6 +9,7 @@ import 'package:rapid_recall/blocs/characters_bloc/characters_bloc.dart';
 import 'package:rapid_recall/blocs/characters_bloc/characters_event.dart';
 import 'package:rapid_recall/blocs/characters_bloc/characters_state.dart';
 import 'package:rapid_recall/data/repository/data_repository.dart';
+import 'package:rapid_recall/utils/context_extension.dart';
 
 class CharacterGridScreen extends StatefulWidget {
   final VoidCallback onThemeChange;
@@ -23,12 +24,12 @@ class _CharacterGridScreenState extends State<CharacterGridScreen>
   final alphabetsList =
       List.generate(26, (index) => String.fromCharCode(index + 65));
 
-  late String selectedAlphabet;
+  String? selectedAlphabet;
   late ValueNotifier<int> hskNo;
   late TabController tabController;
 
   initializeDropdown() {
-    selectedAlphabet = alphabetsList[0];
+    selectedAlphabet = null;
   }
 
   onHskChanged(int no, BuildContext ctx) {
@@ -59,6 +60,13 @@ class _CharacterGridScreenState extends State<CharacterGridScreen>
 
   @override
   Widget build(BuildContext context) {
+    final dropdownBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(40),
+      borderSide: BorderSide(
+        color: Theme.of(context).focusColor,
+        width: 2,
+      ),
+    );
     return BlocProvider(
       create: (context) =>
           CharactersBloc(RepositoryProvider.of<DataRepository>(context))
@@ -120,6 +128,8 @@ class _CharacterGridScreenState extends State<CharacterGridScreen>
                             pinned: true,
                             delegate: StickyHeader(
                               child: Container(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 20),
                                 color:
                                     Theme.of(context).scaffoldBackgroundColor,
                                 child: Row(
@@ -127,8 +137,23 @@ class _CharacterGridScreenState extends State<CharacterGridScreen>
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     SizedBox(
-                                      width: 100,
+                                      width: context.width / 3,
                                       child: DropdownButtonFormField(
+                                        icon: const Icon(
+                                          Icons.keyboard_arrow_down_rounded,
+                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium,
+                                        decoration: InputDecoration(
+                                          hintText: 'Choose a letter',
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                          ),
+                                          enabledBorder: dropdownBorder,
+                                          focusedBorder: dropdownBorder,
+                                        ),
                                         value: selectedAlphabet,
                                         items: alphabetsList
                                             .map(
@@ -213,10 +238,10 @@ class StickyHeader extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  double get maxExtent => 40;
+  double get maxExtent => 85;
 
   @override
-  double get minExtent => 40;
+  double get minExtent => 75;
 
   @override
   bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) => true;
